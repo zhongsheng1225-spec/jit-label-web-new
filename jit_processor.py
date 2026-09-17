@@ -178,8 +178,8 @@ def _make_note_page(width: float, height: float, code: str, name: str) -> PdfRea
     margin = 12
     max_width = width - margin * 2
     title_size = 10
-    body_size = 8.2
-    label_size = 7.2
+    body_size = 10.5
+    label_size = 10.5
 
     name_lines = _wrap_text(name, font_name, body_size, max_width)
     while len(name_lines) > 8 and body_size > 5.8:
