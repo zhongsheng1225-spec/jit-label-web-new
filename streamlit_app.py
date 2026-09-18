@@ -64,6 +64,11 @@ def save_uploaded_pdf(uploaded_file) -> Path:
         return Path(tmp.name)
 
 
+def annotated_download_name(uploaded_name: str) -> str:
+    original = Path(uploaded_name or "JIT面单.pdf").stem
+    return f"{original}注释.pdf"
+
+
 def extract_code_from_page(page: pdfplumber.page.Page) -> str:
     text = page.extract_text() or ""
     matches = SKU_RE.findall(text)
@@ -185,40 +190,40 @@ def make_note_page(width: float, height: float, code: str, name: str) -> PdfRead
 
     margin = 12
     max_width = width - margin * 2
-    title_size = 13
-    body_size = 10.5
-    label_size = 8.5
+    title_size = 16
+    body_size = 13
+    label_size = 10
     name_lines = wrap_text(name, font_name, body_size, max_width)
-    while len(name_lines) > 8 and body_size > 5.8:
+    while len(name_lines) > 7 and body_size > 7:
         body_size -= 0.4
         name_lines = wrap_text(name, font_name, body_size, max_width)
 
-    y = height - 18
+    y = height - 20
     c.setFillColor(HexColor("#111111"))
     c.setFont(font_name, title_size)
     c.drawString(margin, y, "商品名称注释")
 
-    y -= 18
+    y -= 21
     c.setFont(font_name, label_size)
     c.setFillColor(HexColor("#555555"))
     c.drawString(margin, y, "商品编码")
-    y -= 12
-    c.setFont(font_name, 10.5)
+    y -= 14
+    c.setFont(font_name, 13)
     c.setFillColor(HexColor("#111111"))
     c.drawString(margin, y, code or "未识别")
 
-    y -= 18
+    y -= 22
     c.setFont(font_name, label_size)
     c.setFillColor(HexColor("#555555"))
     c.drawString(margin, y, "商品名称")
-    y -= 13
+    y -= 15
     c.setFont(font_name, body_size)
     c.setFillColor(HexColor("#111111"))
     for line in name_lines:
         if y < margin:
             break
         c.drawString(margin, y, line)
-        y -= body_size + 2.2
+        y -= body_size + 2.4
 
     c.showPage()
     c.save()
@@ -317,7 +322,7 @@ if review["passed"]:
     st.download_button(
         "下载已加商品名称注释的 PDF",
         output_pdf,
-        file_name="JIT面单_已加商品名称注释.pdf",
+        file_name=annotated_download_name(uploaded_pdf.name),
         mime="application/pdf",
         type="primary",
     )
