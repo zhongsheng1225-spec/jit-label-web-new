@@ -72,8 +72,16 @@ def excel_to_mapping_csv_bytes(excel_bytes: bytes) -> tuple[bytes, int]:
 def _extract_code_from_page(page: pdfplumber.page.Page) -> str:
     text = page.extract_text() or ""
     matches = SKU_RE.findall(text)
-    sku_matches = [match for match in matches if re.match(r"^[A-Z]", match)]
-    return sku_matches[0] if sku_matches else ""
+    letter_codes = [match for match in matches if re.match(r"^[A-Z]", match)]
+    if letter_codes:
+        return letter_codes[0]
+
+    numeric_codes = [
+        match
+        for match in matches
+        if re.match(r"^\d{10,14}(?:-\d+)?$", match) and not match.startswith("120000")
+    ]
+    return numeric_codes[0] if numeric_codes else ""
 
 
 def analyze_pdf(pdf_path: Path, mapping: dict[str, str]) -> dict[str, Any]:
@@ -177,9 +185,9 @@ def _make_note_page(width: float, height: float, code: str, name: str) -> PdfRea
 
     margin = 12
     max_width = width - margin * 2
-    title_size = 10
+    title_size = 13
     body_size = 10.5
-    label_size = 10.5
+    label_size = 8.5
 
     name_lines = _wrap_text(name, font_name, body_size, max_width)
     while len(name_lines) > 8 and body_size > 5.8:
@@ -196,7 +204,7 @@ def _make_note_page(width: float, height: float, code: str, name: str) -> PdfRea
     c.setFillColor(HexColor("#555555"))
     c.drawString(margin, y, "商品编码")
     y -= 11
-    c.setFont(font_name, 8.5)
+    c.setFont(font_name, 10.5)
     c.setFillColor(HexColor("#111111"))
     c.drawString(margin, y, code or "未识别")
 
